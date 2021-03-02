@@ -63,8 +63,27 @@ int main (int argc, char *argv[]) {
   }
 
   for(i=2;i<argc;i++) {
-    
-    rc = send(sd, argv[i], strlen(argv[i]) + 1, 0);
+
+	// Comparing
+	
+	int cmpResult = strcmp(argv[i], "Exit");
+	
+	if(cmpResult == 0) {
+	
+		exit(1);
+	
+	
+	}
+	
+	else {
+	
+			rc = send(sd, argv[i], strlen(argv[i]) + 1, 0);
+	
+	}
+	
+	
+
+
     
     if(rc<0) {
       perror("cannot send data ");
@@ -77,6 +96,9 @@ int main (int argc, char *argv[]) {
 
    
   }
+	
+    
+    
 
 return 0;
   
