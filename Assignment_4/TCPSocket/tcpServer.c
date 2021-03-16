@@ -9,7 +9,9 @@
 #include <netdb.h>
 #include <stdio.h>
 #include <unistd.h> /* close */
-#include<string.h>
+#include <stdlib.h>
+#include <string.h>
+
 
 #define SUCCESS 0
 #define ERROR   1

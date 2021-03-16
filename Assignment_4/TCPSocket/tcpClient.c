@@ -7,10 +7,12 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <string.h>
 #include <stdio.h>
-#include <unistd.h> /* close */
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h> /* close */
+//using namespace std;
 
 #define SERVER_PORT 1500
 #define MAX_MSG 100
@@ -21,12 +23,12 @@ int main (int argc, char *argv[]) {
   struct sockaddr_in localAddr, servAddr;
   struct hostent *h;
   
-  if(argc < 3) {
-    printf("usage: %s <server> <data1> <data2> ... <dataN>\n",argv[0]);
-    exit(1);
-  }
+  
+  printf("Enter the IP Address of the server: ");
+  char ip[15];
+  scanf(" %s", ip);
 
-  h = gethostbyname(argv[1]);
+  h = gethostbyname(ip);
   if(h==NULL) {
     printf("%s: unknown host '%s'\n",argv[0],argv[1]);
     exit(1);
@@ -62,43 +64,39 @@ int main (int argc, char *argv[]) {
     exit(1);
   }
 
-  for(i=2;i<argc;i++) {
+  int term = 0;
+ 
+  while (1)
 
-	// Comparing
-	
-	int cmpResult = strcmp(argv[i], "Exit");
-	
-	if(cmpResult == 0) {
-	
-		exit(1);
-	
-	
-	}
-	
-	else {
-	
-			rc = send(sd, argv[i], strlen(argv[i]) + 1, 0);
-	
-	}
-	
-	
-
-
+  {
     
-    if(rc<0) {
-      perror("cannot send data ");
-      close(sd);
-      exit(1);
+    char in[1000];
+    printf("Enter your message: ");
+    scanf("%s", in);
     
+    char *ptr = strtok(in, " ");
+    while (ptr != NULL)
+    {
+
+      if (strcmp(ptr, "exit") == 0) {
+        term = 1;
+        break;
+      }
+
+      else{
+        rc = send(sd, ptr, strlen(ptr) + 1, 0);
+        ptr = strtok(NULL, " ");
+      }
+
+    }
+    if (term == 1) {
+
+      break;
     }
 
-    printf("%s: data%u sent (%s)\n",argv[0],i-1,argv[i]);
-
-   
   }
-	
-    
-    
+
+  
 
 return 0;
   
