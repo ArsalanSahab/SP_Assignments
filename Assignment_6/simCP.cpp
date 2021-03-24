@@ -1,65 +1,36 @@
-#include<stdlib.h>
-#include<stdio.h>
-#include<fcntl.h>
-#include<string.h>
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <dirent.h>
+#include <sys/stat.h>
 #include<cstring>
-#include<iostream>
-#include<sys/stat.h>
-#include<sys/types.h>
-#include<unistd.h>
-#include<fstream>
+#include <bits/stdc++.h>
+#include <sys/types.h>
+using namespace std;
 
 
 
+void copyFile(const char* fileNameFrom, const char* fileNameTo){
 
+    char    buff[BUFSIZ];
+    FILE    *in, *out;
+    size_t  n;
 
-int main(int argc, char **argv){
-
-
-	// Stream for File to Copy, opened in READ ONLY MODe
-    int sf = open(argv[1], O_RDONLY);
-
-	// Stream for new File, opened in READ/WRTIE MODE
-    int tf = open(argv[2], O_RDONLY | O_CREAT | O_WRONLY);
-
-    if (sf < 0 || tf < 0){
-
-        printf("Error! \n");
-
-        return 0;
-
+    in  = fopen(fileNameFrom, "rb");
+    out = fopen(fileNameTo, "wb");
+    while ( (n=fread(buff,1,BUFSIZ,in)) != 0 ) {
+        fwrite( buff, 1, n, out );
     }
+}
 
+
+int main(int argc, char* argv[]){
+
+
+
+	copyFile(argv[1],argv[2]);
 	
-	// Allocating memory, size = number of bytes == 1MB
-    void *c = (void *)malloc(102400);
-
-	// Check if file can be opened/exists.
-    int check = read(sf,c,1);
-
-    while(check != 0){
-
-        if (check == -1){
-            printf("Error! \n");
-            return 0;
-        }
-
-        write(tf,c,1);
-
-        
-
-		 check = read(sf,c,1);
-    }
-
- 
- 	printf("Done! \n");
-	// Close Both Files
-    close(sf);
-    close(tf);
-    
-
-
-
+	printf("Done");
 
     return 0;
 }
