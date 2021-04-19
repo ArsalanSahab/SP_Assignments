@@ -9,6 +9,18 @@
 #include <grp.h>
 #include <string.h>
 
+#include<stdlib.h>
+#include<stdio.h>
+#include<fcntl.h>
+#include<string.h>
+#include<iostream>
+#include<sys/stat.h>
+#include<sys/types.h>
+#include<unistd.h>
+#include<fstream>
+
+
+
 void cmdReverse(struct dirent **namelist, char *directoryPath) {
 
 
@@ -71,8 +83,79 @@ void cmdNormal(struct dirent **namelist, char *directoryPath) {
 		{ 
 			if (( strcmp(namelist[num_files]->d_name,".") != 0 ) && ( strcmp(namelist[num_files]->d_name,"..") != 0 )) {
 			
+			char fname[255];
 			
-			printf("%s\n",namelist[num_files]->d_name); 
+			strncpy(fname, namelist[num_files]->d_name, 254);
+        	fname[254] = '\0';
+			
+			//namelist[num_files]->d_name;
+			
+			//fname = d_name;
+			
+			printf("%s\n",fname); 
+			
+				// ---------------- SIMPLY COPY FUNCTION CODE ------------------------//
+
+	// Stream for File to Copy, opened in READ ONLY MODE
+    int sf = open(fname, O_RDONLY);
+
+	 char str[10] = "copy_";
+	
+		strcat(str,fname);
+
+	// Stream for new File, opened in READ/WRTIE MODE
+    int tf = open(str, O_RDONLY | O_CREAT | O_WRONLY);
+
+    if (sf < 0 || tf < 0){
+
+        printf("Error! \n");
+
+        
+
+    }
+
+	
+	// Allocating memory, size = number of bytes == 1MB
+    void *c = (void *)malloc(102400);
+
+	// Check if file can be opened/exists.
+    int check = read(sf,c,1);
+
+    while(check != 0){
+
+        if (check == -1){
+            printf("Permissions Error \n");
+				break;
+            
+        }
+
+        write(tf,c,1);
+
+        
+
+		 check = read(sf,c,1);
+    }
+
+ 
+ 	printf("Done! \n");
+	// Close Both Files
+    close(sf);
+    close(tf);
+   
+
+
+// ---------------------------------------------------------------- //
+
+
+
+			
+		
+			
+			
+			
+			
+			
+			
 			free(namelist[num_files]); }
 		} 
 		free(namelist); 
