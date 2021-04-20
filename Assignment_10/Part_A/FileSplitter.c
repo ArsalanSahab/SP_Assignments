@@ -6,25 +6,26 @@
 #include<pthread.h>
 
 
-// Globals 
+// Global Variables
 
 int N;
 
 
-// Strcuture to Record Information of Each Thread Created
+// Main Threads Structure
 
 typedef struct myThread {
 int id; // Id of the thread
 char* filename_in; // file to read from
-int start_pos; // start pos of the thread
-int end_pos; // end pos of the thread
+int start_pos; // byte position to start reading from
+int end_pos; // byte postion to read till
 char* filename_out; // file to write to
 } myThread;
 
 
 // Function to Print out the details of the current thread created
+
 void printThreadInfo(myThread new_thread) {
-printf(" Thread %d [ filename_in : %s, filename_out : %s, start_pos : %d, end_pos : %d]\n",
+printf(" Thread Number #%d [ Input File : %s, Output File : %s, byte_start_position : %d, byte_end_position : %d]\n",
 new_thread.id, new_thread.filename_in, new_thread.filename_out, new_thread.start_pos, new_thread.end_pos);
 }
 
@@ -33,20 +34,20 @@ new_thread.id, new_thread.filename_in, new_thread.filename_out, new_thread.start
 void *ReadFile(void* arg) {
 
 // New Thread Initialisation
-myThread *tinfo = (myThread*) arg;
+myThread *split_thread = (myThread*) arg;
 
-printf("T%d : STARTING\n", tinfo->id); // print current thread details
+printf("Thread #%d : Executing\n", split_thread->id); // print current thread details
 
-FILE* fp = fopen(tinfo->filename_in, "r");
+FILE* fp = fopen(split_thread->filename_in, "r");
 
-fseek(fp, tinfo->start_pos, SEEK_SET); // goto the thread's starting position , Looking for NewLine 
+fseek(fp, split_thread->start_pos, SEEK_SET); // goto the thread's starting position , Looking for NewLine 
 
 int nbytes = 0; // To keep track of how many bytes read
 
 
 char c;
 
-if(tinfo->start_pos != 0) {
+if(split_thread->start_pos != 0) {
 
     do{
 
@@ -73,7 +74,7 @@ do {
     getline(&line, &lsize, fp); // read a line
 
 
-    FILE* fout = fopen(tinfo->filename_out, "a+");
+    FILE* fout = fopen(split_thread->filename_out, "a+");
     fwrite(line, 1, sizeof(line), fout);
     fclose(fout);
 
@@ -82,11 +83,11 @@ do {
     // add the size of number string to nbytes
     nbytes += (int)strlen(line);
 
-} while((nbytes < (tinfo->end_pos - tinfo->start_pos)) || feof(fp));
+} while((nbytes < (split_thread->end_pos - split_thread->start_pos)) || feof(fp));
 
 fclose(fp);
 
-printf("T%d : HALTING\n", tinfo->id); 
+printf("Thread #%d : Stopping\n", split_thread->id); 
 
 }
 
