@@ -1,3 +1,64 @@
+/* 
+
+#------------------------------- THOUGHT PROCESS ---------------------------------#
+
+TASK : 
+
+Create a Program which reads multiple part files as input, uisng multi thread techniques assign each file to a thread,
+write content from each thread to a single file in seqeunce.
+
+
+# ------ THREAD DEFINITION ------- #
+
+1. Thread ID
+2. Input File Name 
+3. Output File Name 
+
+
+# --------------------------------- #
+
+
+# -------- UTILITY FUNCTIONS -------------- #
+
+
+int FileReader (*NO ARGUMENTS*) :
+
+    1. Open Input File in Read Mode
+    2. Open Output File in Write Mode
+    3. Find the Current Postion of the Cursor and pass to the Thread 
+    4. Read a line
+    5. Stop when encounter new line
+    6. write to output file
+    6. Close Files
+
+# ------------------------------------------ #
+
+
+# --------- MAIN FUNCTIONS ---------------- #
+
+
+int FileMerger(*NO ARGUMENTS*) :
+
+    1. Open Output File in Write Mode
+    2. Allocate Space for Input Files , and open each in Read Mode
+    3. Initialise Thread Structure
+    4. Create N Threads based on for loop 
+    5. Assign each thread respective filenames 
+    6. Execute Threads 
+    7. Join Threads and Exit
+
+# ----------------------------------------- #
+
+
+
+#---------------------------------------------------------------------------------#
+
+*/
+
+
+
+
+
 #include<stdio.h>
 #include<string.h>
 #include<math.h>

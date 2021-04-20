@@ -1,3 +1,73 @@
+/* 
+
+#------------------------------- THOUGHT PROCESS ---------------------------------#
+
+TASK : 
+
+Create a Program Which takes a file as input, splits the file into N chunks using multithreading techniques,
+processes each part as a seprate thread, and out puts N sepearet files.
+
+
+# ------ THREAD DEFINITION ------- #
+
+1. Thread ID
+2. Input File Name 
+3. Output File Name 
+4. Byte Position to Start Reading from
+5. Byte Position to read till
+
+# --------------------------------- #
+
+
+# -------- UTILITY FUNCTIONS -------------- #
+
+
+int FileReader (*NO ARGUMENTS*) :
+
+    1. Open Input File in Read Mode
+    2. Open Output File in Write Mode
+    3. Find the Current Postion of the Cursor and pass to the Thread 
+    4. Keep a Count of Chracters/Bytes Read
+    5. IF Encounter EndOfFile or NewLine then stop reading 
+    6. Close Files
+
+
+
+int findFileSize (* Input File Name *) :
+
+    1. Open Input File in Read Mode
+    2. SEEK from start of file to end
+    3. Record Bytes Read
+    4. Return Bytes
+
+
+
+# ------------------------------------------ #
+
+
+# --------- MAIN FUNCTIONS ---------------- #
+
+
+int FileSplicer(*NO ARGUMENTS*) :
+
+    1. Open Input File in Read Mode
+    2. Allocate Space for Output Files 
+    3. Initialise Thread Structure
+    4. Create N Threads based on for loop 
+    5. Assign each thread respective filenames and byte postions
+    6. Execute Threads 
+    7. Join Threads and Exit
+
+
+# ----------------------------------------- #
+
+
+
+#---------------------------------------------------------------------------------#
+
+*/
+
+
 #include<stdio.h>
 #include<string.h>
 #include<math.h>
