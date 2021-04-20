@@ -21,14 +21,14 @@ char* filename_out; // file to write to
 
 
 // Function to Print out the details of the current thread created
-void printThreadInfo(myThread new_thread) {
+void ThreadDetails(myThread new_thread) {
 printf(" Thread %d [ filename_in : %s, filename_out : %s]\n",
 new_thread.id, new_thread.filename_in, new_thread.filename_out);
 }
 
-// Main Function to ReadFile and Split
+// Main Function to FileReader and Split
 
-void *ReadFile(void* arg) {
+void *FileReader(void* arg) {
 
 // New Thread Initialisation
 myThread *tinfo = (myThread*) arg;
@@ -88,10 +88,10 @@ for(int i = 1; i <= N; i++) {
     new_thread->id = i;
    
 
-    printThreadInfo(*new_thread);
+    ThreadDetails(*new_thread);
 
     // create a thread
-    pthread_create(&thread, NULL, ReadFile, new_thread);
+    pthread_create(&thread, NULL, FileReader, new_thread);
     pthread_join(thread, NULL);
     
 
