@@ -1,155 +1,146 @@
-/* fpont 1/00 */
-/* pont.net    */
-/* tcpServer.c */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <stdlib.h>
-#include <string.h>
 #include <stdio.h>
-#include <unistd.h> /* close */
+#include <time.h>
+#include <strings.h>
+#include <ctype.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 
+#define MAX 2048
+ 
 
-#define SUCCESS 0
-#define ERROR   1
+// SOCKET STRUCTURE TO HOLD CUSTOM DATA 
+typedef struct sock_info{
+	int cfd;
+	struct sockaddr_in clie_addr;
+	int num;
+}s_info;
+ 
+// PRINT ERROR MSG REMOVES REDUNDANCY
 
-#define END_LINE 0x0
-#define SERVER_PORT 1500
-#define MAX_MSG 100
-
-/* function readline */
-int read_line();
-
-int main (int argc, char *argv[]) {
-  
-  int sd, newSd, cliLen;
-
-  struct sockaddr_in cliAddr, servAddr;
-  char line[MAX_MSG];
-
-
-  /* create socket */
-  sd = socket(AF_INET, SOCK_STREAM, 0);
-   if(sd<0) {
-    perror("cannot open socket ");
-    return ERROR;
-  }
-  
-  /* bind server port */
-  servAddr.sin_family = AF_INET;
-  servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-  servAddr.sin_port = htons(SERVER_PORT);
-  
-  if(bind(sd, (struct sockaddr *) &servAddr, sizeof(servAddr))<0) {
-    perror("cannot bind port ");
-    return ERROR;
-  }
-
-  listen(sd,5);
-  
-  while(1) {
-
-    printf("%s: waiting for data on port TCP %u\n",argv[0],SERVER_PORT);
-
-    cliLen = sizeof(cliAddr);
-    newSd = accept(sd, (struct sockaddr *) &cliAddr, &cliLen);
-    if(newSd<0) {
-      perror("cannot accept connection ");
-      return ERROR;
-    }
-    
-    /* init line */
-    memset(line,0x0,MAX_MSG);
-    
-    /* receive segments */
-    while(read_line(newSd,line)!=ERROR) {
-      
-      printf("%s: received from %s:TCP%d : %s\n", argv[0], 
-	     inet_ntoa(cliAddr.sin_addr),
-	     ntohs(cliAddr.sin_port), line);
-      /* init line */
-      memset(line,0x0,MAX_MSG);
-      
-    } /* while(read_line) */
-    
-  } /* while (1) */
-
+void print_error(const char *msg)
+{
+	perror(msg);
+	exit(1);
 }
 
 
-/* WARNING WARNING WARNING WARNING WARNING WARNING WARNING       */
-/* this function is experimental.. I don't know yet if it works  */
-/* correctly or not. Use Steven's readline() function to have    */
-/* something robust.                                             */
-/* WARNING WARNING WARNING WARNING WARNING WARNING WARNING       */
 
-/* rcv_line is my function readline(). Data is read from the socket when */
-/* needed, but not byte after bytes. All the received data is read.      */
-/* This means only one call to recv(), instead of one call for           */
-/* each received byte.                                                   */
-/* You can set END_CHAR to whatever means endofline for you. (0x0A is \n)*/
-/* read_lin returns the number of bytes returned in line_to_return       */
-int read_line(int newSd, char *line_to_return) {
+// MAIN THREAD GET MSG FROM CLINET FUNCTION
+ 
+void *get_msg(void *arg)
+{
+
+
+	s_info *s = (s_info *)arg;
+	char ipbuf[BUFSIZ] = {};
+	inet_ntop(AF_INET,&s->clie_addr.sin_addr.s_addr,ipbuf,sizeof(ipbuf));
+	int n,i,port;
+	port = ntohs(s->clie_addr.sin_port);
+
+	printf("new client join ip:%s port:%d number:%d.\n",ipbuf,port,s->num);
+
+
+
+// ----------- MAIN ALGORITHM -------------
+
+
+  FILE *fp;
+  char *filename;
+  filename = (char*) malloc(25*sizeof(char));
+
+  sprintf(filename, "file_part_%03d.txt", s->num);
   
-  static int rcv_ptr=0;
-  static char rcv_msg[MAX_MSG];
-  static int n;
-  int offset;
 
-  offset=0;
+  fp = fopen(filename, "w");
 
-  while(1) {
-    if(rcv_ptr==0) {
-      /* read data from socket */
-      memset(rcv_msg,0x0,MAX_MSG); /* init buffer */
-      n = recv(newSd, rcv_msg, MAX_MSG, 0); /* wait for data */
-      if (n<0) {
-	perror(" cannot receive data ");
-	return ERROR;
-      } else if (n==0) {
-	printf(" connection closed by client\n");
-	close(newSd);
-	return ERROR;
-      }
+  char buffer[MAX];
+  int x;
+
+
+  while (1) {
+    //x = recv(s->cfd, buffer, MAX, 0);
+    x = read(s->cfd,buffer,sizeof(buffer));
+
+    if (x <= 0){
+      break;
+      
     }
+    printf("%s", buffer);
+    fprintf(fp,"%s",buffer);
+
+
+    bzero(buffer, MAX);
+  }
+
+  fclose(fp);
+
+// -------- -----------------------
+
   
-    /* if new data read on socket */
-    /* OR */
-    /* if another line is still in buffer */
 
-    /* copy line into 'line_to_return' */
-    while(*(rcv_msg+rcv_ptr)!=END_LINE && rcv_ptr<n) {
-      memcpy(line_to_return+offset,rcv_msg+rcv_ptr,1);
-      offset++;
-      rcv_ptr++;
-    }
-    
-    /* end of line + end of buffer => return line */
-    if(rcv_ptr==n-1) { 
-      /* set last byte to END_LINE */
-      *(line_to_return+offset)=END_LINE;
-      rcv_ptr=0;
-      return ++offset;
-    } 
-    
-    /* end of line but still some data in buffer => return line */
-    if(rcv_ptr <n-1) {
-      /* set last byte to END_LINE */
-      *(line_to_return+offset)=END_LINE;
-      rcv_ptr++;
-      return ++offset;
-    }
 
-    /* end of buffer but line is not ended => */
-    /*  wait for more data to arrive on socket */
-    if(rcv_ptr == n) {
-      rcv_ptr = 0;
-    } 
-    
-  } /* while */
+	close(s->cfd);
+	free(s);
+	return NULL;
 }
+ 
+int main(int argc,char **argv)
+{	
+
+
+  // SERVER SIDE SOCKET SETUP
+
+	int sfd = socket(AF_INET,SOCK_STREAM,0);
+	if (sfd == -1)
+	{
+		print_error("socket");
+	}
+	struct sockaddr_in serv_addr,clie_addr;
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = htons(8888);
+	//serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	inet_pton(AF_INET,"127.0.0.1",&serv_addr.sin_addr.s_addr);
+	int result = bind(sfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr));
+	if (result == -1)
+	{
+		print_error("bind");
+	}
+ 
+	result = listen(sfd,128);
+	if (result == -1)
+	{
+		print_error("listen");
+	}
+
+  // ----------------------------------
+
+
+  // THREADED SERVER SOCKETS 
+	int i = 1;
+	while(1)
+	{
+		socklen_t clie_addr_len = sizeof(clie_addr);
+		int cfd = accept(sfd,(struct sockaddr *)&clie_addr,&clie_addr_len);
+		if (cfd == -1)
+		{
+			print_error("accept");
+		}
+		
+		s_info *clie_sock = (s_info *)malloc(sizeof(s_info));
+		clie_sock->cfd = cfd;
+		clie_sock->clie_addr = clie_addr;
+		clie_sock->num = i++;
+		pthread_t id;
+		pthread_create(&id,NULL,(void *)get_msg,(void *)clie_sock);
+		pthread_detach(id);
+	}
+
+  //------------------------------
+
   
-  
+
+	return 0;
+}
