@@ -9,7 +9,7 @@
 #include<pthread.h>
 
 
-int NUM_THREADS = 2;
+int NUM_THREADS = 0;
 
 
 typedef struct sock_info{
@@ -17,14 +17,28 @@ typedef struct sock_info{
 	int id;
 }s_info;
 
+
+
+
 void * cientThread(void *arg)
 {
+
+
+
+
+   FILE *fp;
+    char *filename = "test_1.txt";
+      
+   fp = fopen(filename, "r");
+
+
+   
 
   s_info *s = (s_info *)arg;
 
   printf("Executing Thread Number #%d\n", s->id);    
  
-  char message[1024];
+  char message[2048];
   char buffer[1024];
   int clientSocket;
   struct sockaddr_in serverAddr;
@@ -50,16 +64,13 @@ void * cientThread(void *arg)
 
     // --------------------- MAIN LOGIC ------------------------- //
 
-      FILE *fp;
-      char *filename = "test_1.txt";
-      
-      fp = fopen(filename, "r");
-
+     
+    
       fseek(fp, 0L, SEEK_END);
 
       int filesize = ftell(fp);
 
-      printf("File Size = %d\n", filesize);
+      printf("File Size = %d\n", filesize); 
 
      
       int start_pos;
@@ -68,65 +79,72 @@ void * cientThread(void *arg)
      if (s->id == 1) {
 
       start_pos = 0;
-      end_pos = ((s->id)*(filesize/NUM_THREADS)) + 1;
+      end_pos = ((s->id)*(filesize/NUM_THREADS));
 
      }
 
-     else {
+     else  {
 
       start_pos = (s->id - 1) * (filesize/NUM_THREADS);
-      end_pos = ((s->id)*(filesize/NUM_THREADS)) + 1;
+      end_pos = ((s->id)*(filesize/NUM_THREADS)) ;
 
 
      }
 
     printf("Start = %d, End = %d\n",start_pos, end_pos );
 
+    
+
       fseek(fp,start_pos, SEEK_SET);
-      fread(buffer, end_pos , 1, fp);
-
       
-
+      fread(buffer, sizeof(char), (end_pos-start_pos), fp);
+      
+  
     // ---------------------------------------------------------- //
 
-
-
-
-
-
-    //strcpy(message,"Hello\n");
+    printf("Data = %s\n", buffer);
 
    if( send(clientSocket , buffer , strlen(buffer) , 0) < 0)
     {
             printf("Send failed\n");
     }
     bzero(buffer,sizeof(buffer));
+
     //Print the received message
     printf("Data Tranferred \n");
+    printf("Closing Thread Number #%d \n\n",s->id); 
     close(clientSocket);
     pthread_exit(NULL);
 }
-int main(){
-  int i = 1;
-  pthread_t tid[NUM_THREADS];
-  while(i<3)
-  {
+int main(int argc,char **argv){
 
-    s_info *clie_sock = (s_info *)malloc(sizeof(s_info));
-	clie_sock->id = i;  
-    
-    if( pthread_create(&tid[i], NULL, cientThread, (void *)clie_sock) != 0 )
-           printf("Failed to create thread\n");
-    i++;
-  }
+
+  NUM_THREADS = atoi(argv[1]);
+
+
+
+  for(int i = 1; i <= NUM_THREADS; i++) {
+
+    pthread_t thread[NUM_THREADS];
+     s_info *clie_sock = (s_info *)malloc(sizeof(s_info));
+	  clie_sock->id = i;  
   
-  i = 1;
-  while(i<3)
-  {
-     printf("Closing Thread \n"); 
-     pthread_join(tid[i++],NULL);
-     
+    // create a thread
+    pthread_create(&thread[i], NULL, cientThread, (void *)clie_sock);
+    pthread_join(thread[i], NULL);
     
-  }
+
+}
+
+pthread_exit(0);
+
+// ---------------
+
+
+  
+
+
+  
+
   return 0;
 }
