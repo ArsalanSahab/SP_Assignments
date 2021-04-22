@@ -46,7 +46,7 @@ void file_merge(char *source){
         exit(0);
     }
 
-    to = fopen(filename, "w");
+    to = fopen(filename, "a+");
     if (to == NULL)
     {
         printf("Cannot open file %s \n", filename);
@@ -64,7 +64,7 @@ void file_merge(char *source){
     fclose(from);
     fclose(to);
 
-    printf("Files Merged");
+    
 
 
 
@@ -172,7 +172,9 @@ int main(int argc,char **argv)
 
   // THREADED SERVER SOCKETS 
 	int i = 0;
-	while(1)
+
+  int quit = 0;
+	while(quit != NUM_THREADS)
 	{
 		socklen_t clie_addr_len = sizeof(clie_addr);
 		int cfd = accept(sfd,(struct sockaddr *)&clie_addr,&clie_addr_len);
@@ -191,6 +193,10 @@ int main(int argc,char **argv)
 		//pthread_detach(id);
     pthread_join(id,NULL);
 
+    quit++;
+
+    
+
     
 
     
@@ -198,9 +204,20 @@ int main(int argc,char **argv)
 
   //------------------------------
 
+char *file = (char*) malloc(25*sizeof(char));
 
-  // Merging Files
+for (int d = 1; d < NUM_THREADS +1; d++) {
 
+
+  sprintf(file, "file_part_%03d.txt", d);
+
+  file_merge(file);
+
+  
+}
+
+ 
+ printf("Files Merged");
 
   
 
