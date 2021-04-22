@@ -1,47 +1,39 @@
+// -------- HEADER FILES ---------- //
+
 #include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
-#include <fcntl.h> // for open
-#include <unistd.h> // for close
+#include <fcntl.h> 
+#include <unistd.h> 
 #include<pthread.h>
 
 
+// -- GLOBAL VARIABLES -- //
+
 int NUM_THREADS = 0;
 
-
-typedef struct sock_info{
-	
-	int id;
-}s_info;
-
+// ---- STRUCT TO HOLD AGUMENTS TO PASS TO THREAD ---- //
+typedef struct args_holder{
+	int id; // ID OF THE THREAD
+}args_holder;
 
 
 
-void * cientThread(void *arg)
+// Thread Function for Multithreaded Clients
+void * client_thread(void *arg)
 {
 
-
-
-
-   FILE *fp;
-    char *filename = "test_1.txt";
-      
-   fp = fopen(filename, "r");
-
-
-   
-
-  s_info *s = (s_info *)arg;
+  args_holder *s = (args_holder *)arg; // Initialise my struct and bind to function args
 
   printf("Executing Thread Number #%d\n", s->id);    
  
-  char message[2048];
-  char buffer[1024];
-  int clientSocket;
-  struct sockaddr_in serverAddr;
+ 
+  char buffer[1024]; // Buffer to Store Contents
+  int clientSocket; // Client Socket (Virtual)
+  struct sockaddr_in serverAddr; // Structure to store client ip and correspoding server address
   socklen_t addr_size;
 
   // Create the socket. 
@@ -64,87 +56,80 @@ void * cientThread(void *arg)
 
     // --------------------- MAIN LOGIC ------------------------- //
 
-     
+
+      // Open Source File 
+      FILE *fp;
+      char *filename = "test_1.txt";
+      fp = fopen(filename, "r");     
     
+      // Calculate File Size
       fseek(fp, 0L, SEEK_END);
-
       int filesize = ftell(fp);
-
       printf("File Size = %d\n", filesize); 
 
-     
+
+    // Calculate Start and End Readig Positions     
       int start_pos;
       int end_pos;
      
-     if (s->id == 1) {
+      if (s->id == 1) {
 
-      start_pos = 0;
-      end_pos = ((s->id)*(filesize/NUM_THREADS));
+          start_pos = 0;
+          end_pos = ((s->id)*(filesize/NUM_THREADS));
 
      }
 
-     else  {
+      else  {
 
-      start_pos = (s->id - 1) * (filesize/NUM_THREADS);
-      end_pos = ((s->id)*(filesize/NUM_THREADS)) ;
+          start_pos = (s->id - 1) * (filesize/NUM_THREADS);
+          end_pos = ((s->id)*(filesize/NUM_THREADS)) ;
 
 
      }
 
     printf("Start = %d, End = %d\n",start_pos, end_pos );
 
-    
 
-      fseek(fp,start_pos, SEEK_SET);
-      
-      fread(buffer, sizeof(char), (end_pos-start_pos), fp);
-      
-  
-    // ---------------------------------------------------------- //
-
-    printf("Data = %s\n", buffer);
+    // Seek and Send Data
+    fseek(fp,start_pos, SEEK_SET);
+    fread(buffer, sizeof(char), (end_pos-start_pos), fp);
+    printf("Data Sent = %s\n", buffer);
 
    if( send(clientSocket , buffer , strlen(buffer) , 0) < 0)
     {
             printf("Send failed\n");
     }
-    bzero(buffer,sizeof(buffer));
 
-    //Print the received message
+    bzero(buffer,sizeof(buffer)); // Clear Buffer
     printf("Data Tranferred \n");
     printf("Closing Thread Number #%d \n\n",s->id); 
     close(clientSocket);
     pthread_exit(NULL);
 }
+
+
+// --------- Main Driver Finction ------------ //
+
 int main(int argc,char **argv){
 
 
-  NUM_THREADS = atoi(argv[1]);
+  NUM_THREADS = atoi(argv[1]); // Initialising Number of Threads
 
 
-
+  // For Loop to Create Clients Threads based on NUM_THREADS
   for(int i = 1; i <= NUM_THREADS; i++) {
 
-    pthread_t thread[NUM_THREADS];
-     s_info *clie_sock = (s_info *)malloc(sizeof(s_info));
-	  clie_sock->id = i;  
+    pthread_t thread[NUM_THREADS]; // Initilaise p_thread objects
+    args_holder *my_args_holder = (args_holder *)malloc(sizeof(args_holder)); // Allocate memory for struct
+	  my_args_holder->id = i; // pass i to struct id
   
-    // create a thread
-    pthread_create(&thread[i], NULL, cientThread, (void *)clie_sock);
+    // create and join thread
+    pthread_create(&thread[i], NULL, client_thread, (void *)my_args_holder);
     pthread_join(thread[i], NULL);
     
-
 }
 
 pthread_exit(0);
 
-// ---------------
-
-
-  
-
-
-  
-
-  return 0;
+return 0;
 }
