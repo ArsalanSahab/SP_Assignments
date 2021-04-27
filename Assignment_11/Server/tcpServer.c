@@ -205,8 +205,8 @@ NUM_THREADS = atoi(argv[1]);
     
 		pthread_t id;
 		pthread_create(&id,NULL,(void *)server_thread,(void *)clie_sock);
-		//pthread_detach(id);
-    pthread_join(id,NULL);
+		pthread_detach(id);
+    //pthread_join(id,NULL);
 
     quit++;
 

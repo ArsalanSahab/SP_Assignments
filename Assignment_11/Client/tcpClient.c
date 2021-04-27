@@ -75,7 +75,7 @@ void * client_thread(void *arg)
       if (s->id == 1) {
 
           start_pos = 0;
-          end_pos = ((s->id)*(filesize/NUM_THREADS) + );
+          end_pos = ((s->id)*(filesize/NUM_THREADS));
 
      }
 
@@ -137,7 +137,8 @@ int main(int argc,char **argv){
   
     // create and join thread
     pthread_create(&thread[i], NULL, client_thread, (void *)my_args_holder);
-    pthread_join(thread[i], NULL);
+    //pthread_join(thread[i], NULL);
+	 pthread_detach(thread[i]);
     
 }
 
