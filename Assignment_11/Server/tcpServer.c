@@ -1,4 +1,5 @@
-// ------- HEADER FILES ---------- //
+
+// ------- HEADER FILES ---------- //6
 
 #include <stdio.h>
 #include <time.h>
@@ -15,6 +16,8 @@
 // GLOBAl DECLARATIONS
 #define MAX 1024
 int NUM_THREADS = 0;
+
+
  
 
 // SOCKET STRUCTURE TO HOLD CUSTOM DATA 
@@ -32,9 +35,10 @@ void print_error(const char *msg)
 }
 
 
-// FUCNTION TO MARGE FILES
+// FUCNTION TO MERGE FILES
 
 void file_merge(char *source){
+
 
    FILE *from, *to;
    char *filename = "Merged.txt";
@@ -188,6 +192,7 @@ NUM_THREADS = atoi(argv[1]);
   // -------- FOR LOOP TO CREATE THREADS FOR SOCKETS --------------- //
 	int i = 0;
 
+	pthread_t id[NUM_THREADS];
   int quit = 0;
 	while(quit != NUM_THREADS)
 	{
@@ -203,13 +208,22 @@ NUM_THREADS = atoi(argv[1]);
 		clie_sock->clie_addr = clie_addr;
 		clie_sock->num = i++;
     
-		pthread_t id;
-		pthread_create(&id,NULL,(void *)server_thread,(void *)clie_sock);
-		pthread_detach(id);
-    //pthread_join(id,NULL);
+		
+		pthread_create(&id[i],NULL,(void *)server_thread,(void *)clie_sock);
+		//pthread_detach(id);
+    //
 
     quit++;
 
+	} 
+	
+	
+	
+	while(quit != NUM_THREADS) {
+	
+	
+		pthread_detach(id[++quit]);
+	
 	} 
 
   //--------------------------------------------------------------------------------- //

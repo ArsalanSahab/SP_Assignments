@@ -125,12 +125,12 @@ int main(int argc,char **argv){
 
 
   NUM_THREADS = atoi(argv[1]); // Initialising Number of Threads
-
+	pthread_t thread[NUM_THREADS];
 
   // For Loop to Create Clients Threads based on NUM_THREADS
   for(int i = 1; i <= NUM_THREADS; i++) {
 
-    pthread_t thread[NUM_THREADS]; // Initilaise p_thread objects
+     // Initilaise p_thread objects
     args_holder *my_args_holder = (args_holder *)malloc(sizeof(args_holder)); // Allocate memory for struct
 	  my_args_holder->id = i; // pass i to struct id
 	  my_args_holder->filename = argv[2];
@@ -138,9 +138,18 @@ int main(int argc,char **argv){
     // create and join thread
     pthread_create(&thread[i], NULL, client_thread, (void *)my_args_holder);
     //pthread_join(thread[i], NULL);
-	 pthread_detach(thread[i]);
+	 //pthread_detach(thread[i]);
     
 }
+
+
+	int quit = 0;
+	
+	while(quit != NUM_THREADS) {
+	
+		pthread_join(thread[++quit], NULL);
+	
+	}
 
 pthread_exit(0);
 
