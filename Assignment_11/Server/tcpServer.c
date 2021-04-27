@@ -132,7 +132,25 @@ void *server_thread(void *arg)
 int main(int argc,char **argv)
 {	
 
-  NUM_THREADS = atoi(argv[1]);
+	
+
+if(argc != 2){
+
+
+		printf("usage : %s <num_threads[Must be Same in Client and Server]>\n",argv[0]);
+		return -1;
+
+
+
+
+}
+
+	
+NUM_THREADS = atoi(argv[1]);
+	
+
+
+  
 
 
   // ------- SERVER SIDE SOCKET SETUP ---------- //

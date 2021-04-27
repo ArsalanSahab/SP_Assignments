@@ -17,7 +17,8 @@ int NUM_THREADS = 0;
 
 // ---- STRUCT TO HOLD AGUMENTS TO PASS TO THREAD ---- //
 typedef struct args_holder{
-	int id; // ID OF THE THREAD
+	int id;
+	char *filename; // ID OF THE THREAD
 }args_holder;
 
 
@@ -59,9 +60,8 @@ void * client_thread(void *arg)
 
       // Open Source File 
       FILE *fp;
-      char *filename = "test_1.txt";
-      fp = fopen(filename, "r");     
-    
+      //char *filename = argv[2];
+      fp = fopen(s->filename, "r");
       // Calculate File Size
       fseek(fp, 0L, SEEK_END);
       int filesize = ftell(fp);
@@ -75,7 +75,7 @@ void * client_thread(void *arg)
       if (s->id == 1) {
 
           start_pos = 0;
-          end_pos = ((s->id)*(filesize/NUM_THREADS));
+          end_pos = ((s->id)*(filesize/NUM_THREADS) + );
 
      }
 
@@ -113,6 +113,17 @@ void * client_thread(void *arg)
 int main(int argc,char **argv){
 
 
+
+
+  if(argc != 3) {
+
+
+	printf("usage : %s <num_threads[should be same in Client and Server]> <filepath> \n ",argv[0]);
+	return -1;
+
+}
+
+
   NUM_THREADS = atoi(argv[1]); // Initialising Number of Threads
 
 
@@ -122,6 +133,7 @@ int main(int argc,char **argv){
     pthread_t thread[NUM_THREADS]; // Initilaise p_thread objects
     args_holder *my_args_holder = (args_holder *)malloc(sizeof(args_holder)); // Allocate memory for struct
 	  my_args_holder->id = i; // pass i to struct id
+	  my_args_holder->filename = argv[2];
   
     // create and join thread
     pthread_create(&thread[i], NULL, client_thread, (void *)my_args_holder);
