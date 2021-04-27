@@ -2,7 +2,7 @@
 ### Usage
 
 
-Client > ./tcpClient <num_threads> <filepath>
+Client > ./tcpClient <num_threads> <filename/filepath>
 
 Server > ./tcpServer <num_threads> 
 
