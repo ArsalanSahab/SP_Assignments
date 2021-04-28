@@ -11,9 +11,11 @@
 #include<pthread.h>
 
 
-// -- GLOBAL VARIABLES -- //
 
-int NUM_THREADS = 0;
+
+
+// -- GLOBAL VARIABLES -- //
+#define NUM_THREADS 8
 
 // ---- STRUCT TO HOLD AGUMENTS TO PASS TO THREAD ---- //
 typedef struct args_holder{
@@ -60,7 +62,7 @@ void * client_thread(void *arg)
 
       // Open Source File 
       FILE *fp;
-      //char *filename = argv[2];
+      
       fp = fopen(s->filename, "r");
       // Calculate File Size
       fseek(fp, 0L, SEEK_END);
@@ -76,6 +78,14 @@ void * client_thread(void *arg)
 
           start_pos = 0;
           end_pos = ((s->id)*(filesize/NUM_THREADS));
+
+     }
+
+
+     else if(s->id == NUM_THREADS) {
+
+       start_pos = ((s->id - 1) * (filesize/NUM_THREADS));
+       end_pos = ((s->id) * ((filesize/NUM_THREADS) + (filesize%NUM_THREADS)));
 
      }
 
@@ -104,6 +114,7 @@ void * client_thread(void *arg)
     printf("Data Tranferred \n");
     printf("Closing Thread Number #%d \n\n",s->id); 
     close(clientSocket);
+    
     pthread_exit(NULL);
 }
 
@@ -113,19 +124,18 @@ void * client_thread(void *arg)
 int main(int argc,char **argv){
 
 
+ 
 
 
-  if(argc != 3) {
+  if(argc != 2) {
 
-
-	printf("usage : %s <num_threads[should be same in Client and Server]> <filepath> \n ",argv[0]);
+	printf("usage : %s <filepath> \n ",argv[0]);
 	return -1;
 
 }
 
-
-  NUM_THREADS = atoi(argv[1]); // Initialising Number of Threads
-	pthread_t thread[NUM_THREADS];
+   printf("NOTE :THREADS ARE FIXED TO 8 \n");
+	
 
   // For Loop to Create Clients Threads based on NUM_THREADS
   for(int i = 1; i <= NUM_THREADS; i++) {
@@ -133,24 +143,22 @@ int main(int argc,char **argv){
      // Initilaise p_thread objects
     args_holder *my_args_holder = (args_holder *)malloc(sizeof(args_holder)); // Allocate memory for struct
 	  my_args_holder->id = i; // pass i to struct id
-	  my_args_holder->filename = argv[2];
+	  my_args_holder->filename = argv[1];
   
     // create and join thread
-    pthread_create(&thread[i], NULL, client_thread, (void *)my_args_holder);
-    //pthread_join(thread[i], NULL);
-	 //pthread_detach(thread[i]);
+    pthread_t thread;
+    pthread_create(&thread, NULL, client_thread, (void *)my_args_holder);
+    pthread_join(thread, NULL);
+	
     
 }
 
 
-	int quit = 0;
-	
-	while(quit != NUM_THREADS) {
-	
-		pthread_join(thread[++quit], NULL);
-	
-	}
 
+
+
+
+	
 pthread_exit(0);
 
 return 0;

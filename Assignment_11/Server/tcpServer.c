@@ -13,9 +13,10 @@
 
 
 
+
 // GLOBAl DECLARATIONS
 #define MAX 1024
-int NUM_THREADS = 0;
+#define NUM_THREADS 8
 
 
  
@@ -78,20 +79,21 @@ void file_merge(char *source){
 void *server_thread(void *arg)
 {
 
-  
+   
 
 	sock_thread *s = (sock_thread *)arg;
 	char ipbuf[BUFSIZ] = {};
 	inet_ntop(AF_INET,&s->clie_addr.sin_addr.s_addr,ipbuf,sizeof(ipbuf));
 	int n,i,port;
 	port = ntohs(s->clie_addr.sin_port);
-  s->num = s->num +1;
+  s->num = s->num ;
 
 	printf("new client join ip:%s port:%d thread_number:%d.\n",ipbuf,port,s->num );
 
 
 
 // ----------- MAIN ALGORITHM -------------
+
 
 
   FILE *fp;
@@ -120,10 +122,9 @@ void *server_thread(void *arg)
 
   fclose(fp);
 
-// -------------------------------
-
   
 
+// -------------------------------
 
 	close(s->cfd);
 	free(s);
@@ -138,25 +139,15 @@ int main(int argc,char **argv)
 
 	
 
-if(argc != 2){
+if(argc != 1){
 
 
-		printf("usage : %s <num_threads[Must be Same in Client and Server]>\n",argv[0]);
+		printf("usage : %s \n",argv[0]);
 		return -1;
-
-
-
 
 }
 
 	
-NUM_THREADS = atoi(argv[1]);
-	
-
-
-  
-
-
   // ------- SERVER SIDE SOCKET SETUP ---------- //
 
 	int sfd = socket(AF_INET,SOCK_STREAM,0);
@@ -190,11 +181,8 @@ NUM_THREADS = atoi(argv[1]);
   
 
   // -------- FOR LOOP TO CREATE THREADS FOR SOCKETS --------------- //
-	int i = 0;
-
-	pthread_t id[NUM_THREADS];
-  int quit = 0;
-	while(quit != NUM_THREADS)
+	
+	for(int i = 1; i <= NUM_THREADS; i = i + 1)
 	{
 		socklen_t clie_addr_len = sizeof(clie_addr);
 		int cfd = accept(sfd,(struct sockaddr *)&clie_addr,&clie_addr_len);
@@ -206,26 +194,17 @@ NUM_THREADS = atoi(argv[1]);
 		sock_thread *clie_sock = (sock_thread *)malloc(sizeof(sock_thread));
 		clie_sock->cfd = cfd;
 		clie_sock->clie_addr = clie_addr;
-		clie_sock->num = i++;
+		clie_sock->num = i;
     
+		pthread_t id;
+		pthread_create(&id,NULL,(void *)server_thread,(void *)clie_sock);
+		pthread_detach(id);
 		
-		pthread_create(&id[i],NULL,(void *)server_thread,(void *)clie_sock);
-		//pthread_detach(id);
-    //
-
-    quit++;
-
-	} 
-	
-	
-	
-	while(quit != NUM_THREADS) {
-	
-	
-		pthread_detach(id[++quit]);
-	
 	} 
 
+	
+
+	
   //--------------------------------------------------------------------------------- //
 
 
@@ -233,7 +212,7 @@ NUM_THREADS = atoi(argv[1]);
 
   char *file = (char*) malloc(25*sizeof(char));
 
-  for (int d = 1; d < NUM_THREADS +1; d++) {
+  for (int d = 1; d <  NUM_THREADS + 1 ; d++) {
       sprintf(file, "file_part_%03d.txt", d);
       file_merge(file);
 }
