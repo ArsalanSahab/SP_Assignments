@@ -29,12 +29,14 @@ typedef struct args_holder{
 void * client_thread(void *arg)
 {
 
+
+
   args_holder *s = (args_holder *)arg; // Initialise my struct and bind to function args
 
   printf("Executing Thread Number #%d\n", s->id);    
  
  
-  char buffer[1024]; // Buffer to Store Contents
+  
   int clientSocket; // Client Socket (Virtual)
   struct sockaddr_in serverAddr; // Structure to store client ip and correspoding server address
   socklen_t addr_size;
@@ -69,6 +71,8 @@ void * client_thread(void *arg)
       int filesize = ftell(fp);
       printf("File Size = %d\n", filesize); 
 
+      char buffer[filesize]; // Buffer to Store Contents
+
 
     // Calculate Start and End Readig Positions     
       int start_pos;
@@ -102,7 +106,7 @@ void * client_thread(void *arg)
 
     // Seek and Send Data
     fseek(fp,start_pos, SEEK_SET);
-    fread(buffer, sizeof(char), (end_pos-start_pos), fp);
+    fread(buffer, sizeof(buffer), (end_pos-start_pos), fp);
     printf("Data Sent = %s\n", buffer);
 
    if( send(clientSocket , buffer , strlen(buffer) , 0) < 0)
